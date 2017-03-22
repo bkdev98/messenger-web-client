@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>{{title}}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="css/reset.min.css" rel="stylesheet">
+    <link href="css/font-awesome.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container clearfix">
+        <div class="people-list" id="people-list">
+            <div class="search">
+                <input type="text" placeholder="search" />
+                <i class="fa fa-search"></i>
+            </div>
+            <ul class="list">
+                {{#each userList}}
+                    <li class="clearfix">
+                        <a href="/messengers/{{uid}}">
+                            <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_01.jpg" alt="avatar" />
+                            <div class="about">
+                                <div class="name">{{fullname}}</div>
+                                <div class="status">
+                                    <i class="fa fa-circle online"></i> online
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                {{/each}}
+
+            </ul>
+        </div>
+
+        <div class="chat">
+            <div class="chat-header clearfix">
+                {{!--<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_01_green.jpg" alt="avatar" />--}}
+
+                <div class="chat-about">
+                    {{!--<div class="chat-with">Let's begin a conversation!</div>--}}
+                    {{!--<div class="chat-num-messages"></div>--}}
+                </div>
+                
+                <a href="/logout"><i class="fa fa-sign-out" style="color: #e74c3c; font-size: 35px"></i></a>
+            </div>
+            <!-- end chat-header -->
+
+            <div class="chat-history">
+                <ul>
+                    <li>
+                        <div class="message-data">
+                            <span class="message-data-name"><i class="fa fa-circle online"></i> Admin</span>
+                            {{!--<span class="message-data-time">10:12 AM, Today</span>--}}
+                        </div>
+                        <div class="message my-message">
+                            Let's begin a conversation.
+                        </div>
+                    </li>
+
+                </ul>
+
+            </div>
+            <!-- end chat-history -->
+
+            <div class="chat-message clearfix">
+                <textarea name="message-to-send" id="message-to-send" placeholder="Type your message" rows="3"></textarea>
+
+                <button>Send</button>
+
+            </div>
+            <!-- end chat-message -->
+
+        </div>
+        <!-- end chat -->
+
+    </div>
+    <!-- end container -->
+
+    <script src="/js/jquery-3.1.1.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+    <script>
+        var searchFilter = {
+        options: {
+            valueNames: ['name']
+        },
+        init: function () {
+            var userList = new List('people-list', this.options);
+            var noItems = $('<li id="no-items-found">No items found</li>');
+
+            userList.on('updated', function (list) {
+            if (list.matchingItems.length === 0) {
+                $(list.list).append(noItems);
+            } else {
+                noItems.detach();
+            }
+            });
+        }
+        };
+
+        searchFilter.init();
+    </script>
+</body>
+
+</html>
