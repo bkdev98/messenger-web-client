@@ -1,5 +1,4 @@
 node_modules/
 .DS_Store
 .vscode/
-server/config/firebase.json
 npm-debug.log
