@@ -14,7 +14,7 @@
 <body class="align">
     <div class="grid">
 
-        <form class="form login" id="infoForm">
+        <form class="form login" method="post" action="/info" enctype="multipart/form-data" id="infoForm">
 
             <div class="form__field form__title">
                 <h1>Update Info</h1>
@@ -23,6 +23,12 @@
             <div class="form__field">
                 <label for="login__username"><svg class="icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#user"></use></svg><span class="hidden">Your name</span></label>
                 <input id="name" type="text" name="name" class="form__input" placeholder="Your name" required>
+            </div>
+
+            <div class="file-drop-area">
+                <span class="fake-btn">Choose avatar</span>
+                <span class="file-msg js-set-number">or drag and drop your image here</span>
+                <input class="file-input" type="file" name="image">
             </div>
 
             <div class="form__field">
@@ -52,33 +58,32 @@
     <script src="/js/firebase-config.js"></script>
 
     <script>
-        function readCookie(name) {
-            var nameEQ = name + "=";
-            var ca = document.cookie.split(';');
-            for (var i = 0; i < ca.length; i++) {
-                var c = ca[i];
-                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-            }
-            return null;
+
+        var $fileInput = $('.file-input');
+        var $droparea = $('.file-drop-area');
+
+        // highlight drag area
+        $fileInput.on('dragenter focus click', function() {
+        $droparea.addClass('is-active');
+        });
+
+        // back to normal state
+        $fileInput.on('dragleave blur drop', function() {
+        $droparea.removeClass('is-active');
+        });
+
+        // change inner text
+        $fileInput.on('change', function() {
+        var filesCount = $(this)[0].files.length;
+        var $textContainer = $(this).prev('.js-set-number');
+
+        if (filesCount === 1) {
+            // if single file then show file name
+            $textContainer.text($(this).val().split('\\').pop());
+        } else {
+            // otherwise show number of files
+            $textContainer.text(filesCount + ' files selected');
         }
-
-        $("#infoForm").submit(function(e) {
-            e.preventDefault();
-
-            const fullname = $("#name").val();
-            const uid = "{{uid}}";
-            const usersRef = firebase.database().ref("users/" + uid);
-
-            usersRef.update({
-                fullname
-            })
-                .then(() => {
-                    window.location = '/';
-                })
-                .catch((e) => {
-                    window.location = '/info';
-                })
         });
     </script>
 </body>

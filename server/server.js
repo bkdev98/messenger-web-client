@@ -5,9 +5,20 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const _ = require('lodash');
 const hbs = require('hbs');
+const fs = require('fs');
 const cookieParser = require('cookie-parser');
 const axios = require('axios');
-const MomentHandler = require("handlebars.moment");
+const MomentHandler = require('handlebars.moment');
+const multer = require('multer');
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/')
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now() + '.jpg')
+    }
+});
+const upload = multer({ storage: storage });
 MomentHandler.registerHelpers(hbs);
 
 //  Firebase Configuration
@@ -32,6 +43,7 @@ const port = process.env.PORT || 3001;
 app.use('/css', express.static(__dirname + '/../public/css'));
 app.use('/js', express.static(__dirname + '/../public/js'));
 app.use('/fonts', express.static(__dirname + '/../public/fonts'));
+app.use('/uploads', express.static(__dirname + '/../uploads'));
 
 app.use(cookieParser());
 
@@ -139,10 +151,64 @@ app.get('/register', (req, res) => {
     res.render('register.hbs');
 });
 
-app.get('/info', [middleware.authenticate, middleware.info], (req, res) => {
+app.get('/info', [middleware.authenticate], (req, res) => {
     res.render('info.hbs', {
         uid: req.currentUser.uid
     });
+});
+
+app.post('/info', [middleware.authenticate], upload.array('image', 'name'), (req, res) => {
+    var fullname = req.body.name;
+    
+    require('lwip').open(__dirname + '/../' + req.files[0].path, function(err, image) {
+        if (!err) {
+            image.resize(60, 60, function (err, image) {
+                if (err) {
+                    return console.log(err);
+                }
+                image.toBuffer('jpg', function (err, buffer) {
+                    var avatar = Date.now() + '-' + req.files[0].filename;
+                    fs.writeFile(__dirname + '/../uploads/' + avatar, buffer, function (err) {
+                        if (err) {
+                            return console.log(err);
+                        }
+
+                        //  Update to Firebase
+                        const userRef = firebase.database().ref("users/" + req.currentUser.uid);
+
+                        userRef.update({
+                            fullname,
+                            avatar
+                        })
+                            .then(() => {
+                                res.redirect('/');
+                            })
+                            .catch((e) => {
+                               res.redirect('/info');
+                            })
+
+                    });
+                });
+            });
+        } else {
+            console.log(err);
+        }
+    });
+    // fs.readFile(req.files, function (err, data) {
+    //     var imageName = req.files.name;
+    //     if(!imageName) {
+    //         console.log("There was an error");
+    //         res.redirect("/");
+    //         res.end();
+    //     } else {
+    //         console.log(imageName);
+    //         var newPath = __dirname + "/uploads/" + imageName;
+    //         console.log(newPath);
+    //         fs.writeFile(newPath, data, function (err) {
+    //             res.redirect("/uploads/" + imageName);
+    //         })
+    //     }
+    // });
 });
 
 app.post('/register', (req, res) => {

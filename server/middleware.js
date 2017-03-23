@@ -50,6 +50,9 @@ module.exports = {
                 res.redirect('/');
             } else {
                 req.targetUser = snapshot.val()[id];
+                if (!req.targetUser.avatar) {
+                    req.targetUser = 'user.png'
+                };
                 next();
             }
         });
@@ -58,11 +61,15 @@ module.exports = {
         var userList = [];
         usersRef.once('value', (snapshot) => {
             Object.keys(snapshot.val()).map((key) => {
-                var { email, fullname } = snapshot.val()[key];
+                var { email, fullname, avatar } = snapshot.val()[key];
+                if (!avatar) {
+                    avatar = 'user.png'
+                };
                 var user = {
                     email,
                     fullname,
-                    uid: key
+                    uid: key,
+                    avatar
                 }
                 userList.push(user);
             });
