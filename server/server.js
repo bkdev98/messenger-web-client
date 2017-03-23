@@ -76,6 +76,7 @@ app.get('/', [
     ], (req, res) => {
     res.render('index.hbs', {
         userList: req.userList,
+        currentUser: req.currentUser,
         title: "Messenger | Home"
     }); 
 });
@@ -110,7 +111,7 @@ io.on('connection', (socket) => {
             // console.log(req.currentUser.fullname + " left room" + socket.room);
             socket.leave(socket.room);
         }
-
+        
         socket.room = room;
         console.log(" joined room" + socket.room);
         conversationId = room;
@@ -146,7 +147,11 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
     const { uid, idToken } = req.body;
 
-    usersRef.child(uid).update({ idToken })
+    usersRef.child(uid).update({ 
+        idToken,
+        status: 'online',
+        lastLogin: new Date().getTime()
+    })
         .then((user) => {
             res.send({redirect: '/'});
         })
@@ -168,41 +173,53 @@ app.get('/info', [middleware.authenticate], (req, res) => {
 app.post('/info', [middleware.authenticate], upload.array('image', 'name'), (req, res) => {
     var fullname = req.body.name;
     
-    //  Resize Image
-    require('lwip').open(__dirname + '/../' + req.files[0].path, function(err, image) {
-        if (!err) {
-            image.resize(60, 60, function (err, image) {
-                if (err) {
-                    return console.log(err);
-                }
-                image.toBuffer('jpg', function (err, buffer) {
-                    var avatar = Date.now() + '-' + req.files[0].filename;
-                    fs.writeFile(__dirname + '/../uploads/' + avatar, buffer, function (err) {
-                        if (err) {
-                            return console.log(err);
-                        }
+    if (!req.files[0]) {
+        return usersRef.child(req.currentUser.uid).update({
+            fullname
+        })
+            .then(() => {
+                res.redirect('/');
+            })
+            .catch((e) => {
+                res.redirect('/info');
+            })
+    } else {
 
-                        //  Update to Firebase
-                        const userRef = firebase.database().ref("users/" + req.currentUser.uid);
+        //  Resize Image
+        require('lwip').open(__dirname + '/../' + req.files[0].path, function(err, image) {
+            if (!err) {
+                image.resize(60, 60, function (err, image) {
+                    if (err) {
+                        return console.log(err);
+                    }
+                    image.toBuffer('jpg', function (err, buffer) {
+                        var avatar = Date.now() + '-' + req.files[0].filename;
+                        fs.writeFile(__dirname + '/../uploads/' + avatar, buffer, function (err) {
+                            if (err) {
+                                return console.log(err);
+                            }
 
-                        userRef.update({
-                            fullname,
-                            avatar
-                        })
-                            .then(() => {
-                                res.redirect('/');
+                            //  Update to Firebase
+                            usersRef.child(req.currentUser.uid).update({
+                                fullname,
+                                avatar
                             })
-                            .catch((e) => {
-                               res.redirect('/info');
-                            })
+                                .then(() => {
+                                    res.redirect('/');
+                                })
+                                .catch((e) => {
+                                res.redirect('/info');
+                                })
 
+                        });
                     });
                 });
-            });
-        } else {
-            console.log(err);
-        }
-    });
+            } else {
+                console.log(err);
+            }
+        });
+
+    }
 });
 
 app.post('/register', (req, res) => {
@@ -230,9 +247,19 @@ app.post('/register', (req, res) => {
     });
 });
 
-app.get('/logout', (req, res) => {
+app.get('/logout', [middleware.authenticate], (req, res) => {
     res.clearCookie('token');
-    res.redirect('/login');
+    usersRef.child(req.currentUser.uid).update({ 
+        idToken: null,
+        status: 'offline',
+        lastLogin: new Date().getTime()
+    })
+        .then((user) => {
+            res.redirect('/login');
+        })
+        .catch((e) => {
+            res.redirect('/login');
+        })
 });
 
 server.listen(port, () => {

@@ -10,10 +10,17 @@ module.exports = {
         if (token) {
             usersRef.orderByChild("idToken").equalTo(token).once("value", (snapshot) => {
                 var uid = Object.keys(snapshot.val())[0];
+                var avatar = null;
+                if (!snapshot.val()[uid].avatar) {
+                    avatar = 'user.png'
+                } else {
+                    avatar = snapshot.val()[uid].avatar;
+                };
                 user = {
                     uid,
                     email: snapshot.val()[uid].email,
-                    fullname: snapshot.val()[uid].fullname
+                    fullname: snapshot.val()[uid].fullname,
+                    avatar
                 }
                 req.currentUser = user;
                 next();
@@ -47,7 +54,7 @@ module.exports = {
             } else {
                 req.targetUser = snapshot.val()[id];
                 if (!req.targetUser.avatar) {
-                    req.targetUser = 'user.png'
+                    req.targetUser.avatar = 'user.png'
                 };
                 next();
             }
@@ -57,7 +64,7 @@ module.exports = {
         var userList = [];
         usersRef.once('value', (snapshot) => {
             Object.keys(snapshot.val()).map((key) => {
-                var { email, fullname, avatar } = snapshot.val()[key];
+                var { email, fullname, avatar, lastLogin, status } = snapshot.val()[key];
                 if (!avatar) {
                     avatar = 'user.png'
                 };
@@ -65,7 +72,9 @@ module.exports = {
                     email,
                     fullname,
                     uid: key,
-                    avatar
+                    avatar,
+                    lastLogin,
+                    status
                 }
                 userList.push(user);
             });

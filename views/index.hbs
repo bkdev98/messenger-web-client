@@ -25,7 +25,7 @@
                             <div class="about">
                                 <div class="name">{{fullname}}</div>
                                 <div class="status">
-                                    <i class="fa fa-circle online"></i> online
+                                    <i class="fa fa-circle online"></i> {{status}}
                                 </div>
                             </div>
                         </a>
@@ -37,11 +37,13 @@
 
         <div class="chat">
             <div class="chat-header clearfix">
-                {{!--<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_01_green.jpg" alt="avatar" />--}}
+                <a href="/info">
+                    <img src="/uploads/{{currentUser.avatar}}" alt="avatar" class="avatar" />
+                </a>
 
                 <div class="chat-about">
-                    {{!--<div class="chat-with">Let's begin a conversation!</div>--}}
-                    {{!--<div class="chat-num-messages"></div>--}}
+                    <div class="chat-with">Hello {{currentUser.fullname}}</div>
+                    <div class="chat-num-messages"></div>
                 </div>
                 
                 <a href="/logout"><i class="fa fa-sign-out" style="color: #e74c3c; font-size: 35px"></i></a>
@@ -56,20 +58,27 @@
                             {{!--<span class="message-data-time">10:12 AM, Today</span>--}}
                         </div>
                         <div class="message my-message">
-                            Let's begin a conversation.
+                            Select a person and start a conversation.
                         </div>
                     </li>
-
+                    <li>
+                        <div class="message-data">
+                            <span class="message-data-name"><i class="fa fa-circle online"></i> Admin</span>
+                            {{!--<span class="message-data-time">10:12 AM, Today</span>--}}
+                        </div>
+                        <div class="message my-message">
+                            Click on your avatar to update your infomation.
+                        </div>
+                    </li>
                 </ul>
 
             </div>
             <!-- end chat-history -->
 
             <div class="chat-message clearfix">
-                <textarea name="message-to-send" id="message-to-send" placeholder="Type your message" rows="3"></textarea>
+                <textarea name="message-to-send" id="message-to-send" rows="3" disabled></textarea>
 
                 <button>Send</button>
-
             </div>
             <!-- end chat-message -->
 
