@@ -184,41 +184,18 @@ app.post('/info', [middleware.authenticate], upload.array('image', 'name'), (req
                 res.redirect('/info');
             })
     } else {
-
-        //  Resize Image
-        require('lwip').open(__dirname + '/../' + req.files[0].path, function(err, image) {
-            if (!err) {
-                image.resize(60, 60, function (err, image) {
-                    if (err) {
-                        return console.log(err);
-                    }
-                    image.toBuffer('jpg', function (err, buffer) {
-                        var avatar = Date.now() + '-' + req.files[0].filename;
-                        fs.writeFile(__dirname + '/../uploads/' + avatar, buffer, function (err) {
-                            if (err) {
-                                return console.log(err);
-                            }
-
-                            //  Update to Firebase
-                            usersRef.child(req.currentUser.uid).update({
-                                fullname,
-                                avatar
-                            })
-                                .then(() => {
-                                    res.redirect('/');
-                                })
-                                .catch((e) => {
-                                res.redirect('/info');
-                                })
-
-                        });
-                    });
-                });
-            } else {
-                console.log(err);
-            }
-        });
-
+        var avatar = req.files[0].filename;
+                //  Update to Firebase
+        usersRef.child(req.currentUser.uid).update({
+            fullname,
+            avatar
+        })
+            .then(() => {
+                res.redirect('/');
+            })
+            .catch((e) => {
+                res.redirect('/info');
+            })
     }
 });
 
