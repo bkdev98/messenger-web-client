@@ -26,20 +26,16 @@ module.exports = {
     },
     info: (req, res, next) => {
         var token = req.cookies.token;
-        // console.log(token);
-        if (token) {
-            usersRef.orderByChild("idToken").equalTo(token).once("value", (snapshot) => {
-                if (snapshot.val().fullname !== null) {
-                    next();
-                } else {
-                    res.redirect('/info');
-                }
-            }, (e) => {
-                res.redirect('/login');
-            })
-        } else {
+
+        usersRef.orderByChild("idToken").equalTo(token).once("value", (snapshot) => {
+            if (snapshot.val().fullname !== null) {
+                next();
+            } else {
+                res.redirect('/info');
+            }
+        }, (e) => {
             res.redirect('/login');
-        }
+        })
     },
     gettargetuser: (req, res, next) => {
         var targetUser = {};

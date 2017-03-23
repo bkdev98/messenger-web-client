@@ -69,7 +69,11 @@ hbs.registerHelper('ifCond', function (v1, operator, v2, options) {
 
 //  Express Routers
 
-app.get('/', [middleware.authenticate, middleware.info, middleware.getuserlist], (req, res) => {
+app.get('/', [
+        middleware.authenticate,
+        middleware.info,
+        middleware.getuserlist
+    ], (req, res) => {
     res.render('index.hbs', {
         userList: req.userList,
         title: "Messenger | Home"
@@ -80,7 +84,13 @@ app.get('/test', (req, res) => {
     res.render('test.hbs');
 });
 
-app.get('/messengers/:id', [middleware.authenticate, middleware.gettargetuser, middleware.getuserlist, middleware.getmessagelist], (req, res) => {
+app.get('/messengers/:id', [   
+        middleware.authenticate,
+        middleware.info,
+        middleware.gettargetuser,
+        middleware.getuserlist,
+        middleware.getmessagelist
+    ], (req, res) => {
     var conversationId = req.conversationId;
 
     res.render('conversation.hbs', {
@@ -90,9 +100,7 @@ app.get('/messengers/:id', [middleware.authenticate, middleware.gettargetuser, m
         currentUser: req.currentUser,
         conversationId
     });
-
 });
-
 
 io.on('connection', (socket) => {
     var conversationId = null;
@@ -160,6 +168,7 @@ app.get('/info', [middleware.authenticate], (req, res) => {
 app.post('/info', [middleware.authenticate], upload.array('image', 'name'), (req, res) => {
     var fullname = req.body.name;
     
+    //  Resize Image
     require('lwip').open(__dirname + '/../' + req.files[0].path, function(err, image) {
         if (!err) {
             image.resize(60, 60, function (err, image) {
@@ -194,21 +203,6 @@ app.post('/info', [middleware.authenticate], upload.array('image', 'name'), (req
             console.log(err);
         }
     });
-    // fs.readFile(req.files, function (err, data) {
-    //     var imageName = req.files.name;
-    //     if(!imageName) {
-    //         console.log("There was an error");
-    //         res.redirect("/");
-    //         res.end();
-    //     } else {
-    //         console.log(imageName);
-    //         var newPath = __dirname + "/uploads/" + imageName;
-    //         console.log(newPath);
-    //         fs.writeFile(newPath, data, function (err) {
-    //             res.redirect("/uploads/" + imageName);
-    //         })
-    //     }
-    // });
 });
 
 app.post('/register', (req, res) => {
